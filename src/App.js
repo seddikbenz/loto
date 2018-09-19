@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import styled from 'styled-components'
-
+import * as _ from 'lodash'
 const StyledContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -28,6 +28,13 @@ const Header = styled.header`
     margin-right: 20px
     color: green;
     border: 2px solid green;
+  }
+  .search{
+    padding: 5px 20px;
+    border: 2px solid palevioletred;
+    border-radius: 3px;
+    margin: 5px;
+    color: palevioletred;
   }
 `
 const List = styled.div`
@@ -110,32 +117,56 @@ class App extends Component {
     this.saveToFile = this.saveToFile.bind(this)
     this.generate = this.generate.bind(this)
     this.print = this.print.bind(this)
+    this.inputSearchOnChange = this.inputSearchOnChange.bind(this)
 
     this.test1 = this.test1.bind(this)
     this.test2 = this.test2.bind(this)
     this.getRandomInt = this.getRandomInt.bind(this)
     this.state = {
       author: 'seddikbenz',
-      date: Date.now(),
+      date: new Date(),
       list: [],
+      displayedList: [],
       print: false
     }
   }
 
   print () {
-    this.setState({print: true},()=>{
-      try {
-        window.print()
-        this.setState({print: false})
-      } catch (error) {
-        console.error(error)
-        alert('error whene printing')
-      }
-    })
+    if(this.state.list.length !== 0 ) {
+      this.setState({print: true},()=>{
+        try {
+          window.print()
+          this.setState({print: false})
+        } catch (error) {
+          console.error(error)
+          alert('error whene printing')
+        }
+      })
+    } else {
+      alert('No Loto List to Print')      
+    }
   }
 
   componentDidMount () {
     this.setState({print: false})
+  }
+  inputSearchOnChange (e) {
+    if(e.target.value === ''){
+      this.setState({
+        displayedList: this.state.list
+      })
+    } else {
+      try {
+        let t = eval('[' + e.target.value + ']')
+        let displayedList = _.filter(this.state.list, (tab) => {
+          return _.intersection(t,tab).length >= 3
+        })
+        this.setState({
+          displayedList
+        })
+      } catch (error) {
+      }
+    }
   }
 
   test1(t) {
@@ -217,7 +248,7 @@ class App extends Component {
       }
       
     }
-    this.setState({list: [...list]})
+    this.setState({list: [...list], displayedList: [...list], date: new Date()})
   }
 
   render() {
@@ -229,28 +260,29 @@ class App extends Component {
                 <input type='file' onChange={this.openFileChangedHandler} className='button' />
                 <button onClick={this.saveLotoFile} className='button' >Save</button>
                 <button onClick={this.print} className='button' >Print</button>
+                <input placeholder='example: 1,2,3,4,5,6,7' className='search' type='text' onChange={this.inputSearchOnChange} />
                 <button onClick={this.generate} className='button right'>Generate</button>
             </Header>
           }
 
         <List>
           {
-            this.state.list.length === 0 && 
+            this.state.displayedList.length === 0 && 
             <div className='nolist' >
               <h1>No <u>Loto list</u> to show</h1>
               <h2><u>Choose</u> saved file or click <u>generate</u> new Loto list</h2>
             </div>
           }
           {
-            this.state.list.length !== 0 &&
+            this.state.displayedList.length !== 0 &&
             <div className='list'>
               <ul className='loto'>
-                {this.state.list.map((l, i)=>(
+                {this.state.displayedList.map((l, i)=>(
                   <li key={i}>
                     <ul className='numeros'>
                     {
                       l.map((e,ei)=>(
-                        <li><a key={ei}>{e} </a></li>
+                        <li key={ei}><a >{e} </a></li>
                       ))
                     }
                     </ul>
@@ -260,9 +292,12 @@ class App extends Component {
             </div>
           }
         </List>
-        <Footer>
-          <h5>{Date(this.state.date).toString()}</h5>
-        </Footer>
+        {
+          !this.state.print && 
+            < Footer>
+              <h5>{this.state.date.toString()}</h5>
+            </Footer>
+        }
       </StyledContainer>
     );
   }
