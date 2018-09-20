@@ -17,15 +17,15 @@ const Header = styled.header`
   align-items: center;
   .button{
     display: inline-block;
-    color: palevioletred;
+    color: black;
     margin: 5px;
     padding: 5px 20px;
-    border: 2px solid palevioletred;
+    border: 2px solid black;
     border-radius: 3px;
   }
   .right{
     margin-left: auto;
-    margin-right: 20px
+    margin-right: 20px;
     color: green;
     border: 2px solid green;
   }
@@ -33,10 +33,11 @@ const Header = styled.header`
     position: relative;
     input{
       padding: 5px 20px;
-      border: 2px solid palevioletred;
+      border: 2px solid black;
       border-radius: 3px;
       margin: 5px;
-      color: palevioletred;
+      color: black;
+      font-size: 18px;
     }
     span{
       display: flex;
@@ -44,16 +45,15 @@ const Header = styled.header`
       justify-content:center;
       align-items:center;
       position: absolute;
-      height: 24px;
-      padding: 5px 10px;
+      padding: 5px 20px;
       width: max-content;
-      bottom: -36px;
-      background-color: palevioletred;
-      color: white;
-      font-size: 18px;
+      bottom: -22px;
+      left: 10px;
+      background-color: white;
+      color: black;
+      font-size: 14px;
       font-weight: bold;
       border-radius: 10px;
-      border: 2px dashed white;
     }
   }
 `
@@ -149,7 +149,7 @@ class App extends Component {
       displayedList: [],
       print: false,
       inputSearch: '',
-      showInfo: false
+      showInfo: true
     }
   }
 
@@ -183,7 +183,6 @@ class App extends Component {
       }
       else {
         try {
-          let t = eval('[' + e.target.value + ']')
           let displayedList = _.filter(this.state.list, (tab) => {
             return _.intersection(t,tab).length >= 4
           })
@@ -198,7 +197,7 @@ class App extends Component {
     let i, j;
     for (i = 0; i < t.length; i++)
       for (j = i + 1; j < t.length; j++)
-        if (t[i] == t[j])
+        if (t[i] === t[j])
           return false;
     return true;
   }
@@ -208,7 +207,7 @@ class App extends Component {
       for (let j = 1; j < 6; j++) {
         let diff1 = Math.abs( t[j] - t[i] )
         let diff2 = Math.abs( t[j + 1] - t[j] )
-        if ((diff1 == 1) && (diff2 == 1)) return false;
+        if ((diff1 === 1) && (diff2 === 1)) return false;
       }
     }
     return true;
@@ -265,7 +264,7 @@ class App extends Component {
         t[i] = this.getRandomInt()
       }
       t = t.sort((a, b) => a-b)
-      if ( this.test1(t)  && this.test2(t) ) {
+      if ( this.test1(t) ) {
         list.push(t)
         n++
       }
@@ -288,7 +287,7 @@ class App extends Component {
                     onBlur={()=>this.setState({showInfo: false})}
                     onFocus={()=>this.setState({showInfo: true})}
                     value={this.state.inputSearch} placeholder='example: 1,2,3,4,5,6,7' type='text' onChange={this.inputSearchOnChange} />
-                  {this.state.showInfo && <span>You must put 4 numbers !</span>}
+                  {this.state.showInfo && <span>4 numbers to start search !</span>}
                 </div>
                 <button onClick={this.generate} className='button right'>Generate</button>
             </Header>
