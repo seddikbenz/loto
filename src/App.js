@@ -149,7 +149,7 @@ class App extends Component {
       displayedList: [],
       print: false,
       inputSearch: '',
-      showInfo: true
+      showInfo: false
     }
   }
 
