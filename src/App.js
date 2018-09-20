@@ -30,11 +30,31 @@ const Header = styled.header`
     border: 2px solid green;
   }
   .search{
-    padding: 5px 20px;
-    border: 2px solid palevioletred;
-    border-radius: 3px;
-    margin: 5px;
-    color: palevioletred;
+    position: relative;
+    input{
+      padding: 5px 20px;
+      border: 2px solid palevioletred;
+      border-radius: 3px;
+      margin: 5px;
+      color: palevioletred;
+    }
+    span{
+      display: flex;
+      flex-direction: column;
+      justify-content:center;
+      align-items:center;
+      position: absolute;
+      height: 24px;
+      padding: 5px 10px;
+      width: max-content;
+      bottom: -36px;
+      background-color: palevioletred;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 10px;
+      border: 2px dashed white;
+    }
   }
 `
 const List = styled.div`
@@ -127,7 +147,9 @@ class App extends Component {
       date: new Date(),
       list: [],
       displayedList: [],
-      print: false
+      print: false,
+      inputSearch: '',
+      showInfo: false
     }
   }
 
@@ -150,21 +172,24 @@ class App extends Component {
   componentDidMount () {
     this.setState({print: false})
   }
+
   inputSearchOnChange (e) {
-    if(e.target.value === ''){
-      this.setState({
-        displayedList: this.state.list
-      })
-    } else {
-      try {
-        let t = eval('[' + e.target.value + ']')
-        let displayedList = _.filter(this.state.list, (tab) => {
-          return _.intersection(t,tab).length >= 3
-        })
-        this.setState({
-          displayedList
-        })
-      } catch (error) {
+    let value = e.target.value
+    if(value.match(/^(\d+,?\d?)*$/)){
+      this.setState({inputSearch: value})
+      let t = eval('[' + e.target.value + ']')
+      if(t.length < 4) {
+        this.setState({displayedList: this.state.list, showInfo: true})
+      }
+      else {
+        try {
+          let t = eval('[' + e.target.value + ']')
+          let displayedList = _.filter(this.state.list, (tab) => {
+            return _.intersection(t,tab).length >= 4
+          })
+          this.setState({displayedList, showInfo: false})
+        } catch (error) {
+        }
       }
     }
   }
@@ -174,20 +199,19 @@ class App extends Component {
     for (i = 0; i < t.length; i++)
       for (j = i + 1; j < t.length; j++)
         if (t[i] == t[j])
-          return 0;
-    return 1;
+          return false;
+    return true;
   }
   
   test2(t) {
-    for (let i = 0; i < 7; i++) {
-      for (let j = 1; i < 9; i++) {
-        let diff1 = t[j] - t[i];
-        let diff2 = t[j + 1] - t[j];
-        if ((diff1 == 1) && (diff2 == 1))
-          return 0;
+    for (let i = 0; i < 6; i++) {
+      for (let j = 1; j < 6; j++) {
+        let diff1 = Math.abs( t[j] - t[i] )
+        let diff2 = Math.abs( t[j + 1] - t[j] )
+        if ((diff1 == 1) && (diff2 == 1)) return false;
       }
     }
-    return 1;
+    return true;
   }
   
   getRandomInt () {
@@ -240,10 +264,9 @@ class App extends Component {
       for (let i = 0; i < 7; i++){
         t[i] = this.getRandomInt()
       }
-      t = t.sort(function(a, b){return a-b})
-      if ((this.test1(t) == 1) && (this.test2(t) == 1)) {
+      t = t.sort((a, b) => a-b)
+      if ( this.test1(t)  && this.test2(t) ) {
         list.push(t)
-        //console.log(n + ' : ' + t);
         n++
       }
       
@@ -260,17 +283,30 @@ class App extends Component {
                 <input type='file' onChange={this.openFileChangedHandler} className='button' />
                 <button onClick={this.saveLotoFile} className='button' >Save</button>
                 <button onClick={this.print} className='button' >Print</button>
-                <input placeholder='example: 1,2,3,4,5,6,7' className='search' type='text' onChange={this.inputSearchOnChange} />
+                <div className='search'>
+                  <input 
+                    onBlur={()=>this.setState({showInfo: false})}
+                    onFocus={()=>this.setState({showInfo: true})}
+                    value={this.state.inputSearch} placeholder='example: 1,2,3,4,5,6,7' type='text' onChange={this.inputSearchOnChange} />
+                  {this.state.showInfo && <span>You must put 4 numbers !</span>}
+                </div>
                 <button onClick={this.generate} className='button right'>Generate</button>
             </Header>
           }
 
         <List>
           {
-            this.state.displayedList.length === 0 && 
+            this.state.list.length === 0 && 
             <div className='nolist' >
               <h1>No <u>Loto list</u> to show</h1>
               <h2><u>Choose</u> saved file or click <u>generate</u> new Loto list</h2>
+            </div>
+          }
+          {
+            this.state.displayedList.length === 0 && this.state.list.length !== 0 &&
+            <div className='nolist' >
+              <h1>Oops !!</h1>
+              <h2>No <u>Loto list</u> found</h2>
             </div>
           }
           {
