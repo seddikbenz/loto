@@ -56,6 +56,15 @@ const Header = styled.header`
       border-radius: 10px;
     }
   }
+  .inputNumber{
+    padding: 5px 20px;
+    border: 2px solid black;
+    border-radius: 3px;
+    margin-right: 20px;
+    color: black;
+    font-size: 18px;
+    width: 50px;
+  }
 `
 const List = styled.div`
   padding-top: 50px;
@@ -138,6 +147,7 @@ class App extends Component {
     this.generate = this.generate.bind(this)
     this.print = this.print.bind(this)
     this.inputSearchOnChange = this.inputSearchOnChange.bind(this)
+    this.inputNumberListOnChange = this.inputNumberListOnChange.bind(this)
 
     this.test1 = this.test1.bind(this)
     this.test2 = this.test2.bind(this)
@@ -149,7 +159,8 @@ class App extends Component {
       displayedList: [],
       print: false,
       inputSearch: '',
-      showInfo: false
+      showInfo: false,
+      numberList: 10
     }
   }
 
@@ -192,33 +203,54 @@ class App extends Component {
       }
     }
   }
+  inputNumberListOnChange (e) {
+    let value = e.target.value
+    if(value.match(/^\d+/)) {
+      if(value <= 200) this.setState({numberList: value})
+      else alert('Max number of list 200 !')
+    }
+  }
 
   test1(t) {
     let i, j;
-    for (i = 0; i < t.length; i++)
-      for (j = i + 1; j < t.length; j++)
+    for (i = 0; i < t.length - 1; i++)
+      for (j = i + 1; j < t.length - 1; j++)
         if (t[i] === t[j])
           return false;
     return true;
   }
   
-  test2(t) {
-    for (let i = 0; i < 6; i++) {
-      for (let j = 1; j < 6; j++) {
-        let diff1 = Math.abs( t[j] - t[i] )
-        let diff2 = Math.abs( t[j + 1] - t[j] )
-        if ((diff1 === 1) && (diff2 === 1)) return false;
-      }
-    }
-    return true;
+  test2(t, list) {
+    let res = true
+    list.forEach(tab => {
+      if (_.intersection(t,tab).length >= 4) res = false
+    })
+    return res;
   }
   
   getRandomInt () {
-    let min = Math.ceil(1);
-    let max = Math.floor(35);
-    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+    let min = Math.ceil(1)
+    let max = Math.floor(35)
+    return Math.floor(Math.random() * (max - min)) + min
   }
 
+  generate () {
+    let list = []
+    let n = 0
+    while(n < this.state.numberList){
+      let t = [];
+      for (let i = 0; i < 7; i++){
+        t[i] = this.getRandomInt()
+      }
+      t = t.sort((a, b) => a-b)
+      if ( this.test1(t) && this.test2(t,list) ) {
+        list.push(t)
+        n++
+      }
+      
+    }
+    this.setState({list: [...list], displayedList: [...list], date: new Date()})
+  }
 
   saveToFile(content, fileName, contentType) {
     if(this.state.list.length === 0 ) {
@@ -255,24 +287,6 @@ class App extends Component {
     this.saveToFile(jsonData, 'loto.data', 'application/json');
   }
 
-  generate () {
-    let list = []
-    let n = 0
-    while(n<200){
-      let t = [];
-      for (let i = 0; i < 7; i++){
-        t[i] = this.getRandomInt()
-      }
-      t = t.sort((a, b) => a-b)
-      if ( this.test1(t) ) {
-        list.push(t)
-        n++
-      }
-      
-    }
-    this.setState({list: [...list], displayedList: [...list], date: new Date()})
-  }
-
   render() {
     return (
       <StyledContainer>
@@ -290,6 +304,7 @@ class App extends Component {
                   {this.state.showInfo && <span>4 numbers to start search !</span>}
                 </div>
                 <button onClick={this.generate} className='button right'>Generate</button>
+                <input onChange={this.inputNumberListOnChange} type='number' className='inputNumber' value={this.state.numberList} />
             </Header>
           }
 
